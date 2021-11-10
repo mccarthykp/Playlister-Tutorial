@@ -1,6 +1,6 @@
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 from flask import Flask, render_template, request, redirect, url_for
-
 
 client = MongoClient()
 db = client.Playlister
@@ -22,17 +22,17 @@ def video_url_creator(id_lst):
 
 @app.route('/')
 def playlists_index():
-    """Show all playlists."""
+    """ Show all playlists. """
     return render_template('playlists_index.html', playlists=playlists.find())
 
-@app.route('/playlist/new')
+@app.route('/playlists/new')
 def playlists_new():
-    """Create a new playlist."""
-    return render_template('playlists_new.html')
+    """ Create a new playlist. """
+    return render_template('playlists_new.html', playlist={}, title='New Playlist')
 
-@app.route('/playlists', methods=['POST'])
+@app.route('/playlists/new', methods=['POST'])
 def playlists_submit():
-    """Submit a new playlist."""
+    """ Submit a new playlist. """
     video_ids = request.form.get('video_ids').split()
     videos = video_url_creator(video_ids)
     playlist = {
@@ -44,7 +44,11 @@ def playlists_submit():
     playlists.insert_one(playlist)
     return redirect(url_for('playlists_index'))
 
-
+@app.route('/playlists/<playlist_id>')
+def playlists_show(playlist_id):
+    """ Show a single playlist. """
+    playlist = playlists.find_one({'_id': ObjectId(playlist_id)})
+    return render_template('playlists_show.html', playlist=playlist)
 
 
 if __name__ == '__main__':
